@@ -11,6 +11,11 @@ variable "public_key_path" {
   default = "~/.ssh/terraform-aws-openshift.pub"
 }
 
+//  The public key to use for SSH access.
+variable "private_key_path" {
+  default = "~/.ssh/terraform-aws-openshift"
+}
+
 //  This map defines which AZ to put the 'Public Subnet' in, based on the
 //  region defined. You will typically not need to change this unless
 //  you are running in a new region!

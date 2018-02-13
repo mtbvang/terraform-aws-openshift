@@ -14,13 +14,14 @@ openshift:
 
 	# Create our inventory, copy to the master and run the install script.
 	sed "s/\$${aws_instance.master.public_ip}/$$(terraform output master-public_ip)/" inventory.template.cfg > inventory.cfg
+	chmod 0777 inventory.cfg
 	scp ./inventory.cfg ec2-user@$$(terraform output bastion-public_dns):~
 	cat install-from-bastion.sh | ssh -o StrictHostKeyChecking=no -A ec2-user@$$(terraform output bastion-public_dns)
 
 	# Now the installer is done, run the postinstall steps on each host.
-	cat ./scripts/postinstall-master.sh | ssh -A ec2-user@$$(terraform output bastion-public_dns) ssh master.openshift.local
-	cat ./scripts/postinstall-node.sh | ssh -A ec2-user@$$(terraform output bastion-public_dns) ssh node1.openshift.local
-	cat ./scripts/postinstall-node.sh | ssh -A ec2-user@$$(terraform output bastion-public_dns) ssh node2.openshift.local
+	cat ./scripts/postinstall-master.sh | ssh -A ec2-user@$$(terraform output bastion-public_dns) ssh centos@master.openshift.local
+	cat ./scripts/postinstall-node.sh | ssh -A ec2-user@$$(terraform output bastion-public_dns) ssh centos@node1.openshift.local
+	cat ./scripts/postinstall-node.sh | ssh -A ec2-user@$$(terraform output bastion-public_dns) ssh centos@node2.openshift.local
 
 # Open the console.
 browse-openshift:
@@ -30,11 +31,11 @@ browse-openshift:
 ssh-bastion:
 	ssh -t -A ec2-user@$$(terraform output bastion-public_dns)
 ssh-master:
-	ssh -t -A ec2-user@$$(terraform output bastion-public_dns) ssh master.openshift.local
+	ssh -t -A ec2-user@$$(terraform output bastion-public_dns) ssh centos@master.openshift.local
 ssh-node1:
-	ssh -t -A ec2-user@$$(terraform output bastion-public_dns) ssh node1.openshift.local
+	ssh -t -A ec2-user@$$(terraform output bastion-public_dns) ssh centos@node1.openshift.local
 ssh-node2:
-	ssh -t -A ec2-user@$$(terraform output bastion-public_dns) ssh node2.openshift.local
+	ssh -t -A ec2-user@$$(terraform output bastion-public_dns) ssh centos@node2.openshift.local
 
 # Create sample services.
 sample:

@@ -26,3 +26,7 @@ variable "key_name" {
 variable "public_key_path" {
   description = "The local public key path, e.g. ~/.ssh/id_rsa.pub"
 }
+
+variable "private_key_path" {
+  description = "The local private key path, e.g. ~/.ssh/id_rsa.pub"
+}

@@ -13,6 +13,7 @@ module "openshift" {
   subnet_cidr     = "10.0.1.0/24"
   key_name        = "terraform-aws-openshift"
   public_key_path = "${var.public_key_path}"
+  private_key_path = "${var.private_key_path}"
 }
 
 //  Output some useful variables for quick SSH access etc.
