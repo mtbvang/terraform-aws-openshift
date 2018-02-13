@@ -3,12 +3,12 @@ variable "region" {
   description = "Region to deploy the cluster into"
   //  The default below will be fine for many, but to make it clear for first
   //  time users, there's no default, so you will be prompted for a region.
-  //  default = "us-east-1"
+  default = "eu-central-1"
 }
 
 //  The public key to use for SSH access.
 variable "public_key_path" {
-  default = "~/.ssh/id_rsa.pub"
+  default = "~/.ssh/terraform-aws-openshift.pub"
 }
 
 //  This map defines which AZ to put the 'Public Subnet' in, based on the

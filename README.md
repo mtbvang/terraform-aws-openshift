@@ -104,7 +104,7 @@ To open a browser to admin console, use the following credentials to login:
 
 ```
 Username: admin
-Password: 123
+Password: admin123
 ```
 
 ## Accessing and Managing OpenShift

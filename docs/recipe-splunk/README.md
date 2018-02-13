@@ -78,7 +78,7 @@ You can now open the OpenShift console. Use the public address of the master nod
 make browse-openshift
 ```
 
-The default username and password is `admin` and `123`. You'll see we have a clean installation and are ready to create our first project:
+The default username and password is `admin` and `admin123`. You'll see we have a clean installation and are ready to create our first project:
 
 ![Welcome to OpenShift](/content/images/2017/10/welcome-to-openshift.png)
 
@@ -98,7 +98,7 @@ Once this command is complete, you can open the Splunk console with:
 make browse-splunk
 ```
 
-Again the username and password is `admin` and `123`. You can change the password on login, or leave it:
+Again the username and password is `admin` and `admin123`. You can change the password on login, or leave it:
 
 ![Splunk Login](/content/images/2017/10/splunk-home.png)
 
