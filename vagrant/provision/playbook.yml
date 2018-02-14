@@ -9,15 +9,6 @@
     - name: Gathering facts
       setup:
   roles:
-    - role: devtools
-      devtools_update_packages: yes
-      devtools_user: vagrant
-      devtools_password: vagrant
-      devtools_group: vagrant
-      devtools_ansible_enabled: false
-      devtools_vagrant_enabled: false
-      devtools_dep_virtualbox_enabled: false
-      tags: devtools
     - role: openshift_client
       openshift_oc_version: v3.7.0
       tags: oc

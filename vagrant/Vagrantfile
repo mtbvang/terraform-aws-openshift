@@ -90,7 +90,9 @@ Vagrant.configure("2") do |config|
       end
       vms.vm.synced_folder '../', '/vagrant', type: syncfolder_type , disabled: false
       vms.vm.synced_folder "/home/#{ENV['USER']}/.m2", '/home/vagrant/.m2', type: syncfolder_type , disabled: false
-      vms.vm.synced_folder "provision/files/ssh", '/home/vagrant/.ssh', type: syncfolder_type , disabled: false
+      # ssh keys for aws
+      vms.vm.provision "file", source: "provision/files/ssh/terraform-aws-openshift", destination: "/home/vagrant/.ssh/terraform-aws-openshift"
+      vms.vm.provision "file", source: "provision/files/ssh/terraform-aws-openshift.pub", destination: "/home/vagrant/.ssh/terraform-aws-openshift.pub"
 
       vms.vm.provider "virtualbox" do |v|
         v.gui = VM_GUI

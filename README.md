@@ -40,6 +40,8 @@ Terraform is used to create infrastructure as shown:
 Once the infrastructure is set up an inventory of the system is dynamically
 created, which is used to install the OpenShift Origin platform on the hosts.
 
+The vagrant folder contains a Vagrantfile that will spin up a development VM that has terraform and all the required tools.
+
 ## Prerequisites
 
 You need:
@@ -53,6 +55,7 @@ elif [[ "$unamestr" == 'FreeBSD' ]]; then
         brew install -y awscli
 fi
 ```
+If using the vagrant VM it will prompt you for your AWS key details and the will install and configure the aws cli.
 
 ## Creating the Cluster
 
@@ -66,7 +69,7 @@ eval `ssh-agent -s`
 make infrastructure
 ```
 
-You will be asked for a region to deploy in, use `us-east-1` or your preferred region. You can configure the nuances of how the cluster is created in the [`main.tf`](./main.tf) file. Once created, you will see a message like:
+The default region has been set to `eu-central-1` in variables.tf. You can reset it there or comment it out if you want to be asked for a region to deploy in, use `us-east-1` or your preferred region. You can configure the nuances of how the cluster is created in the [`main.tf`](./main.tf) file. Once created, you will see a message like:
 
 ```
 $ make infrastructure
