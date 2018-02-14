@@ -1,0 +1,128 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+PROJECT_NAME = ENV['PROJECT_NAME'] || File.basename(File.expand_path(File.dirname(__FILE__)))
+
+#
+# Environment variables that can be overriden on vagrant up
+#
+ANSIBLE_GALAXY_FORCE = ENV['ANSIBLE_GALAXY_FORCE'] || "--force"
+ANSIBLE_GALAXY = ENV['ANSIBLE_GALAXY'] == 'false' ? false : true
+ANSIBLE_VERSION = ENV['ANSIBLE_VERSION'] || '2.4.2.0'
+VM_NAME = ENV['VM_NAME'] || 'centos'
+VM_CPUS = ENV['VM_CPUS'] || 1
+VM_CPU_CAP = ENV['VM_CPU_CAP'] || 100
+VM_MEMORY = ENV['VM_MEMORY'] || 6144
+VM_GUI = ENV['VM_GUI'] == 'false' ? false : true
+VM_VB_NATDNSHOSTRESOLVER = ENV['VM_VB_NATDNSHOSTRESOLVER'] || 'off'
+VB_GUEST = ENV['VB_GUEST'] == 'true' ? true : false
+HTTP_PROXY = ENV['HTTP_PROXY']
+HTTPS_PROXY = ENV['HTTPS_PROXY']
+NO_PROXY = ENV['NO_PROXY']
+TESTING = ENV['VAGRANT_TESTING'] == 'true' ? true : false
+GIT_USERNAME = ENV['GIT_USERNAME'] || ''
+GIT_EMAIL = ENV['GIT_EMAIL'] || ''
+AWS_ACCESS_KEY_ID = ENV['AWS_ACCESS_KEY_ID'] || "AKIAIIQMVLENXFO2M3TQ"
+AWS_SECRET_ACCESS_KEY = ENV['AWS_SECRET_ACCESS_KEY'] || "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"
+
+boxes = [
+  {
+  :name => "centos",
+  :box => "boxcutter/centos7-desktop",
+  :cpu => VM_CPU_CAP,
+  :ram => VM_MEMORY
+  }
+]
+
+Vagrant.configure("2") do |config|
+
+  if Vagrant.has_plugin?("vagrant-vbguest")
+    config.vbguest.auto_update = VB_GUEST
+  end
+
+  if Vagrant.has_plugin?("vagrant-cachier")
+    config.cache.scope = :box
+  end
+
+  if Vagrant.has_plugin?("vagrant-proxyconf")
+    if(HTTP_PROXY.nil? || HTTP_PROXY.empty? || HTTP_PROXY == 'null')
+      puts "Disabling proxy conf plugin. No proxy settings found."
+      config.proxy.enabled = false
+    else
+      config.proxy.http = HTTP_PROXY
+      config.proxy.https = HTTPS_PROXY
+      config.proxy.no_proxy = NO_PROXY
+    end
+  end
+
+  #      All this to get the git username and email to set in the poststrap provisioner. FIXNME glob path is hardcoded to centos/virtualbox
+  if (Dir.glob("#{File.dirname(__FILE__)}/.vagrant/machines/centos/virtualbox/*").empty? ||
+  ARGV[1] == '--provision' ||
+  (ARGV[1] == '--provision-with' && ARGV[2] == 'poststrap')) &&
+  (GIT_USERNAME.nil? || GIT_USERNAME.empty? || GIT_USERNAME == 'null' || GIT_EMAIL.nil? || GIT_EMAIL.empty? || GIT_EMAIL == 'null') && ARGV[0] != 'status'
+    print "Enter your git global config credentials: \n"
+    print "user.name: "
+    GIT_USERNAME = STDIN.gets.chomp
+    print "user.GIT_EMAIL: "
+    GIT_EMAIL = STDIN.gets.chomp
+    print "\n"
+  end
+
+  if (AWS_ACCESS_KEY_ID.empty?)
+    print "Enter your aws access key id: \n"
+    print "key id: "
+    AWS_ACCESS_KEY_ID = STDIN.gets.chomp
+  end
+
+  if (AWS_SECRET_ACCESS_KEY.empty?)
+    print "Enter your aws secret access key: \n"
+    print "secret key: "
+    AWS_SECRET_ACCESS_KEY = STDIN.gets.chomp
+  end
+
+  boxes.each do |box|
+    config.vm.define box[:name], primary: box[:primary] do |vms|
+      vms.vm.box = box[:box]
+
+      @syncfolder_type = 'virtualbox'
+      if Vagrant::Util::Platform.windows? then
+        syncfolder_type = 'nfs'
+      end
+      vms.vm.synced_folder '../', '/vagrant', type: syncfolder_type , disabled: false
+      vms.vm.synced_folder "/home/#{ENV['USER']}/.m2", '/home/vagrant/.m2', type: syncfolder_type , disabled: false
+      vms.vm.synced_folder "provision/files/ssh", '/home/vagrant/.ssh', type: syncfolder_type , disabled: false
+
+      vms.vm.provider "virtualbox" do |v|
+        v.gui = VM_GUI
+        v.cpus = VM_CPUS
+        v.customize ["modifyvm", :id, "--cpuexecutioncap", box[:cpu]]
+        v.customize ["modifyvm", :id, "--memory", box[:ram]]
+      end
+
+      vms.vm.provider "vmware_workstation" do |v|
+        v.gui = VM_GUI
+        v.vmx["memsize"] = box[:ram]
+        v.vmx["numvcpus"] = VM_CPUS
+      end
+
+      vms.vm.provision "bootstrap", type: :shell, path: "provision/bootstrap.sh"
+      vms.vm.provision "bootstrapCentos", type: :shell, path: "provision/bootstrap_centos.sh"
+
+      # Note: bootstrap_centos.sh installs ansible
+      vms.vm.provision "ansible", type: :ansible_local do |ansible|
+        ansible.verbose = "v"
+        ansible.install_mode = "pip"
+        ansible.version = ANSIBLE_VERSION
+        ansible.playbook = "#{PROJECT_NAME}/provision/playbook.yml"
+        ansible.extra_vars = {
+          aws_access_key_id: AWS_ACCESS_KEY_ID,
+          aws_secret_access_key: AWS_SECRET_ACCESS_KEY
+        }
+        ansible.galaxy_role_file = "#{PROJECT_NAME}/provision/requirements.yml"
+        ansible.galaxy_roles_path = "#{PROJECT_NAME}/provision/roles"
+        ansible.galaxy_command = "ansible-galaxy install --ignore-certs --role-file=%{role_file} --roles-path=%{roles_path} #{ANSIBLE_GALAXY_FORCE}"
+        ansible.become = true
+      end
+    end
+  end
+end

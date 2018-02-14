@@ -1,0 +1,42 @@
+---
+- name: Install roles
+  become: yes
+  become_user: root
+  become_method: sudo
+  hosts: 
+    - all
+  pre_tasks:
+    - name: Gathering facts
+      setup:
+  roles:
+    - role: devtools
+      devtools_update_packages: yes
+      devtools_user: vagrant
+      devtools_password: vagrant
+      devtools_group: vagrant
+      devtools_ansible_enabled: false
+      devtools_vagrant_enabled: false
+      devtools_dep_virtualbox_enabled: false
+      tags: devtools
+    - role: openshift_client
+      openshift_oc_version: v3.7.0
+      tags: oc
+    - role: terraform
+      version: 0.11.3
+      tags: terraform
+    - role: awscli
+      awscli_version: 1.14.36
+      awscli_users:
+        - username: vagrant
+          access_key_id: "{{ aws_access_key_id }}"
+          secret_access_key: "{{ aws_secret_access_key }}"
+          region: eu-central-1
+          output: text
+      tags: awscli
+  environment:
+    http_proxy: "{{ lookup('env','http_proxy') }}"
+    HTTP_PROXY: "{{ lookup('env','HTTP_PROXY') }}"
+    https_proxy: "{{ lookup('env','https_proxy') }}"
+    HTTPS_PROXY: "{{ lookup('env','HTTPS_PROXY') }}"
+    NO_PROXY: "{{ lookup('env','NO_PROXY') }}"
+    no_proxy: "{{ lookup('env','no_proxy') }}"
