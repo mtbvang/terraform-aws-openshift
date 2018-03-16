@@ -24,6 +24,15 @@
           region: eu-central-1
           output: text
       tags: awscli
+  tasks:
+    - name: Set bashrc file
+      copy:
+        src: files/bashrc
+        dest: /home/vagrant/.bashrc
+        owner: vagrant
+        group: vagrant
+        mode: 0544
+      tags: bashrc
   environment:
     http_proxy: "{{ lookup('env','http_proxy') }}"
     HTTP_PROXY: "{{ lookup('env','HTTP_PROXY') }}"
